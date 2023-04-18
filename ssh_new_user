@@ -1,0 +1,30 @@
+---
+# This playbook sets up SSH on remote hosts, creates a user named remote-access,
+# and generates an SSH key for the user.
+
+- hosts: all
+  become: yes
+  tasks:
+    # Ensure SSH is installed.
+    - name: Ensure SSH is installed
+      package:
+        name: openssh-server
+        state: present
+      # This task ensures that SSH is installed on the remote hosts.
+
+    # Create user remote-access.
+    - name: Create user remote-access
+      user:
+        name: remote-access
+        state: present
+        shell: /bin/bash
+      # This task creates a user named remote-access on the remote hosts.
+
+    # Generate SSH key for user remote-access.
+    - name: Generate SSH key for user remote-access
+      ssh_key:
+        user: remote-access
+        state: present
+        key_type: rsa
+        public_key: /home/remote-access/.ssh/id_rsa.pub
+      # This task generates an SSH key for the user remote-access on the remote hosts.
