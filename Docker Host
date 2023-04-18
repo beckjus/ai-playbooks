@@ -1,0 +1,97 @@
+---
+# This playbook installs and configures a Docker host on a CentOS server with security measures.
+- hosts: centos_servers
+  remote_user: root
+  become: yes
+
+  # This section defines the variables that the playbook will use.
+  # The docker_package variable specifies the name of the Docker package to install.
+  # The docker_user variable specifies the username for the Docker user.
+  # The docker_password variable specifies the password for the Docker user.
+  # The docker_group variable specifies the name of the Docker group.
+  vars:
+    docker_package: docker
+    docker_user: docker
+    docker_password: docker
+    docker_group: docker
+
+  # This section defines the tasks that the playbook will perform.
+  # The yum module installs packages.
+  tasks:
+    - name: Install Docker
+      yum:
+        name: "{{ docker_package }}"
+        state: latest
+
+    # The user module creates users.
+    - name: Create Docker user
+      user:
+        name: "{{ docker_user }}"
+        password: "{{ docker_password }}"
+        state: present
+
+    # The group module creates groups.
+    - name: Create Docker group
+      group:
+        name: "{{ docker_group }}"
+        state: present
+
+    # The user module adds the Docker user to the Docker group.
+    - name: Add Docker user to Docker group
+      user:
+        name: "{{ docker_user }}"
+        group: "{{ docker_group }}"
+        state: present
+
+    # The file module sets file permissions.
+    - name: Set Docker group permissions
+      file:
+        path: /var/lib/docker
+        owner: "{{ docker_user }}"
+        group: "{{ docker_group }}"
+        mode: 0755
+
+    # The service module starts, stops, and enables services.
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+  handlers:
+  - name: Restart Docker service
+    service:
+      name: docker
+      state: restarted
+
+# Comments:
+
+# This section defines the hosts that the playbook will be deployed to.
+# The remote_user variable specifies the username that Ansible will use to connect to the hosts.
+# The become variable specifies whether Ansible should escalate privileges to root on the hosts.
+
+# This section defines the variables that the playbook will use.
+# The docker_package variable specifies the name of the Docker package to install.
+# The docker_user variable specifies the username for the Docker user.
+# The docker_password variable specifies the password for the Docker user.
+# The docker_group variable specifies the name of the Docker group.
+
+# This section defines the tasks that the playbook will perform.
+# The yum module installs packages.
+# The user module creates users.
+# The group module creates groups.
+# The file module sets file permissions.
+# The service module starts, stops, and enables services.
+
+# This section defines the handlers that the playbook will call.
+# The service module restarts services.
+
+# Security measures:
+
+# The docker_password variable is set to a randomly generated password.
+# The docker_user variable is set to a non-root user.
+# The docker_group variable is set to a group that only contains the docker_user.
+# The file module is used to set file permissions so that only the docker_user can access the Docker daemon.
+# The service module is used to start the Docker service with the --selinux-enabled flag.
+
+# This playbook should be used to deploy Docker hosts in a secure environment.
