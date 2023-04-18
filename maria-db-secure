@@ -1,0 +1,81 @@
+---
+# This playbook installs MariaDB on a CentOS server and secures it.
+- hosts: centos_servers
+  remote_user: root
+  become: yes
+
+  # This section defines the variables that the playbook will use.
+  # The mysql_root_password variable specifies the password for the MariaDB root user.
+  vars:
+    mysql_root_password: mypassword
+
+  # This section defines the tasks that the playbook will perform.
+  # The yum module installs packages.
+  tasks:
+    - name: Install MariaDB
+      yum:
+        name: mariadb-server
+        state: latest
+
+    # The service module starts, stops, and enables services.
+    - name: Start MariaDB
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    # The mysql_user module creates, modifies, and removes MySQL users.
+    - name: Set MariaDB root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        host: "{{ ansible_hostname }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    # The mysql_db module creates, modifies, and removes MySQL databases.
+    - name: Remove anonymous users
+      mysql_user:
+        name: ''
+        state: absent
+        host: '%'
+
+    - name: Remove test database
+      mysql_db:
+        name: test
+        state: absent
+
+    # The lineinfile module adds or removes lines from files.
+    - name: Remove remote root access
+      lineinfile:
+        path: /etc/my.cnf
+        line: '[mysqld]
+         bind-address=127.0.0.1'
+        state: present
+
+  # This section defines the handlers that the playbook will call.
+  # The service module restarts services.
+  handlers:
+    - name: Restart MariaDB
+      service:
+        name: mariadb
+        state: restarted
+
+# Comments:
+
+# This section defines the hosts that the playbook will be deployed to.
+# The remote_user variable specifies the username that Ansible will use to connect to the hosts.
+# The become variable specifies whether Ansible should escalate privileges to root on the hosts.
+
+# This section defines the variables that the playbook will use.
+# The mysql_root_password variable specifies the password for the MariaDB root user.
+
+# This section defines the tasks that the playbook will perform.
+# The yum module installs packages.
+# The service module starts, stops, and enables services.
+# The mysql_user module creates, modifies, and removes MySQL users.
+# The mysql_db module creates, modifies, and removes MySQL databases.
+# The lineinfile module adds or removes lines from files.
+
+# This section defines the handlers that the playbook will call.
+# The service module restarts services.
