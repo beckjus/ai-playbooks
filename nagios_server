@@ -1,0 +1,124 @@
+---
+# This playbook installs and configures Nagios on a CentOS server.
+- hosts: centos_servers
+  remote_user: root
+  become: yes
+
+  # This section defines the variables that the playbook will use.
+  # The nagios_package variable specifies the name of the Nagios package to install.
+  # The nagios_user variable specifies the username for the Nagios user.
+  # The nagios_password variable specifies the password for the Nagios user.
+  vars:
+    nagios_package: nagios
+    nagios_user: nagios
+    nagios_password: nagios
+
+  # This section defines the tasks that the playbook will perform.
+  # The yum module installs packages.
+  tasks:
+    - name: Install Nagios
+      yum:
+        name: "{{ nagios_package }}"
+        state: latest
+
+    # The user module creates users.
+    - name: Create Nagios user
+      user:
+        name: "{{ nagios_user }}"
+        password: "{{ nagios_password }}"
+        state: present
+
+    # The group module creates groups.
+    - name: Create Nagios groups
+      group:
+        name:
+        - nagios
+        - nagiosadmin
+
+    # The file module sets file permissions.
+    - name: Set Nagios group permissions
+      file:
+        path: /etc/nagios3
+        owner: nagios
+        group: nagios
+        mode: 0755
+
+    # The file module sets file permissions.
+    - name: Set Nagios log permissions
+      file:
+        path: /var/log/nagios3
+        owner: nagios
+        group: nagios
+        mode: 0755
+
+    # The file module sets file permissions.
+    - name: Set Nagios plugins permissions
+      file:
+        path: /usr/lib64/nagios/plugins
+        owner: nagios
+        group: nagios
+        mode: 0755
+
+    # The copy module copies files.
+    - name: Copy Nagios configuration files
+      copy:
+        src: "{{ item }}"
+        dest: /etc/nagios3
+        owner: nagios
+        group: nagios
+        mode: 0644
+      with_items:
+        - /etc/nagios3/commands.cfg
+        - /etc/nagios3/commands.d/*.cfg
+        - /etc/nagios3/resource.cfg
+        - /etc/nagios3/objects/*.cfg
+
+    # The service module starts, stops, and enables services.
+    - name: Start Nagios service
+      service:
+        name: nagios
+        state: started
+        enabled: yes
+
+    # The ufw module enables and disables firewall rules.
+    - name: Enable Nagios firewall rules
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+        destination: "{{ ansible_default_ipv4.address }}"
+
+    - name: Enable Nagios firewall rules
+      ufw:
+        rule: allow
+        port: 6556
+        proto: tcp
+        destination: "{{ ansible_default_ipv4.address }}"
+
+  handlers:
+  - name: Restart Nagios service
+    service:
+      name: nagios
+      state: restarted
+
+# Comments:
+
+# This section defines the hosts that the playbook will be deployed to.
+# The remote_user variable specifies the username that Ansible will use to connect to the hosts.
+# The become variable specifies whether Ansible should escalate privileges to root on the hosts.
+
+# This section defines the variables that the playbook will use.
+# The nagios_package variable specifies the name of the Nagios package to install.
+# The nagios_user variable specifies the username for the Nagios user.
+# The nagios_password variable specifies the password for the Nagios user.
+
+# This section defines the tasks that the playbook will perform.
+# The yum module installs packages.
+# The user module creates users.
+# The group module creates groups.
+# The file module sets file permissions.
+# The copy module copies files.
+# The service module starts, stops, and enables services.
+# The ufw module enables and disables firewall rules.
+
+# This section defines the handlers that the playbook will cal
